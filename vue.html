@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	 <meta charset="UTF-8">
+    	 <title>Vue 树</title>
+    	 <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    	 <style type="text/css">
+    	 a{color:#333; text-decoration: none;}
+    	 ul{padding-left: 15px;}
+    	 </style>
+    	</head>
+	<body>
+	 <div id="app">
+    	  {{items}}
+    	  <treelist v-for="(val, index) in items" :item="val" @remove="delItem(index)"></treelist>
+    </div>
+	 <template id="treelist_template">
+    	  <ul>
+    	   <div style="padding:5px 0;">
+    	    <a v-if="isFolder" @click="toggle()">[{{open ?'-':'+'}}]</a>
+    	    <a style="color:#FFF;">[+]</a>
+    	    <input type="number" style="width:80px;" v-model="item.sort">
+    	    <input type="text" size="30" v-model="item.name" placeholder="岗位名称">
+    	    <button type="button" @click="addChild()">添加</button>
+    	    <button type="button" @click="$emit('remove')" v-if="!isFolder">删除</button>
+    	   </div>
+    	   <ul v-show="open" v-if="isFolder">
+    	    <treelist v-for="(val, index) in item.children" :item="val" @remove="delItem(index)"></treelist>
+    	   </ul>
+    	  </ul>
+    	 </template>
+	<script>
+    	window.onload =function(){
+        	 //treelist组件
+        	 Vue.component('treelist', {
+            	  template:'#treelist_template',
+                	  props: {
+            	   item: Object
+            	  },
+        	  data:function() {
+            	   return{
+                	    open:true
+            	   }
+            	  },
+
+        	  computed: {
+            	   isFolder:function() {
+                	    return this.item.children && this.item.children.length
+                	   }
+            	  },
+
+        	  methods: {
+            	   toggle:function() {
+                	    if(this.isFolder) {
+                    	     this.open = !this.open
+                    	    }
+                   },
+
+            	   addChild:function() {
+                	    /*添加内容但不同步到服务器*/
+                	    if(!this.isFolder) {
+                    	       Vue.set(this.item,'children', [])
+                    	     }
+                	    this.open =true
+                	    this.item.children.push({
+                    	     sort: 0,
+                        	     name:'',
+                        	     status: 1,
+                        	     parent_id:this.item['id']
+                	    })
+                	   },
+            	   delItem:function(index){
+                	     this.item['children'].splice(index, 1)
+                	   }
+            	  }
+        	 })
+
+        	 new Vue({
+            	  el:'#app',
+                	  data:{
+            	   mydata: {},
+            	   items: [
+                	     {"id":"10","parent_id":"0","sort":"0","name":"其它","status":"0"},
+                	     {"id":"12","parent_id":"0","sort":"0","name":"测试","status":"0"},
+                	     {"id":"1","parent_id":"0","sort":"0","name":"水果","status":"0",
+                    	       "children":[
+                	         {"id":"4","parent_id":"1","sort":"0","name":"香蕉","status":"0"}
+                	       ]
+            	     },
+            	     {"id":"2","parent_id":"0","sort":"0","name":"饮料","status":"0",
+                    	       "children":[
+                	         {"id":"5","parent_id":"2","sort":"0","name":"可乐","status":"0"},
+                	         {"id":"6","parent_id":"2","sort":"0","name":"酒水","status":"0",
+                    	           "children":[
+                	             {"id":"7","parent_id":"6","sort":"0","name":"啤酒","status":"0"}
+                	           ]
+                	         }
+                	       ]
+                	     },
+            	     {"id":"3","parent_id":"0","sort":"0","name":"美食","status":"0",
+                    	       "children":[
+                	         {"id":"8","parent_id":"3","sort":"0","name":"红烧鱼","status":"0"}
+                	       ]
+                     }
+            	   ]
+            	  },
+
+        	  methods: {
+            	   add:function(){
+                	    this.mydata['id'] = 100;//从服务器返回的ID号
+                	    this.mydata['status'] = 0;
+                	    this.mydata['parent_id'] = 0;
+                	    this.items.push(this.mydata);
+                	    this.mydata = {};
+                	   },
+
+            	   delItem:function(index){
+                	     this.items.splice(index, 1)
+                	   }
+            	  }
+        	 });
+        	}
+
+    </script>
+	</body>
+	</html>
